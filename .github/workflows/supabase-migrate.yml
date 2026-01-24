@@ -3,8 +3,9 @@ name: Deploy Supabase Migrations
 on:
   push:
     branches: [main]
-    paths:
-      - 'supabase/migrations/**'
+    # Runs on every push to main - supabase db push is idempotent
+    # (only applies migrations not yet in production)
+  workflow_dispatch:  # Allow manual trigger as backup
 
 jobs:
   migrate:

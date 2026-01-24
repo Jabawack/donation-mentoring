@@ -135,7 +135,6 @@ export default function EmailsPage() {
     const fetchAllRecipients = async () => {
       try {
         const res = await fetch('/api/email/recipients?filter=all&includeUnsubscribed=true', {
-          credentials: 'omit',
           cache: 'no-store',
         });
         const data = await res.json();
@@ -154,7 +153,6 @@ export default function EmailsPage() {
         setLogsLoading(true);
         try {
           const res = await fetch('/api/email/logs?limit=50', {
-            credentials: 'omit',
             cache: 'no-store',
           });
           const data = await res.json();

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
-import { Moon, Sun, User, LogOut, Search, X, ChevronDown, Mail } from 'lucide-react';
+import { Moon, Sun, User, LogOut, Search, X, ChevronDown, Mail, QrCode } from 'lucide-react';
 import { Language, translations } from '@/utils/i18n';
 import { UserRole } from '@/hooks/useAuth';
 
@@ -65,6 +65,7 @@ export default function TopNav({
 }: TopNavProps) {
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const [showQrModal, setShowQrModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
@@ -105,214 +106,253 @@ export default function TopNav({
   const canSearch = variant === 'admin' && showSearch;
 
   return (
-    <header className={`${dm.headerBg} backdrop-blur-sm shadow-sm sticky top-0 z-40 transition-colors duration-300`}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-14">
-          {/* Logo - always consistent */}
-          <Link href="/" className={`text-base sm:text-lg font-bold ${dm.text} whitespace-nowrap mr-2 sm:mr-4`}>
-            {t.title}
-          </Link>
+    <>
+      <header className={`${dm.headerBg} backdrop-blur-sm shadow-sm sticky top-0 z-40 transition-colors duration-300`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-14">
+            <div className="flex items-center gap-1">
+              {/* Logo - always consistent */}
+              <Link href="/" className={`text-base sm:text-lg font-bold ${dm.text} whitespace-nowrap`}>
+                {t.title}
+              </Link>
 
-          {/* Right side controls */}
-          <div className="flex items-center gap-1.5 sm:gap-2">
-            {/* Guest: Nav links - only on homepage when scroll handlers provided */}
-            {variant === 'guest' && (onScrollToAbout || onScrollToMentors) && (
-              <nav className="hidden md:flex items-center gap-1 mr-2">
-                <button
-                  onClick={onScrollToAbout}
-                  className={`px-3 py-1.5 text-sm font-medium ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} rounded-lg transition-colors whitespace-nowrap cursor-pointer`}
-                >
-                  {t.navAbout}
-                </button>
-                <button
-                  onClick={onScrollToMentors}
-                  className={`px-3 py-1.5 text-sm font-medium ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} rounded-lg transition-colors whitespace-nowrap cursor-pointer`}
-                >
-                  {t.navMentors}
-                </button>
-              </nav>
-            )}
+              {/* QR Code Trigger */}
+              <button
+                onClick={() => setShowQrModal(true)}
+                className={`p-1.5 rounded-lg ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} transition-colors`}
+                aria-label="Show QR Code"
+              >
+                <QrCode size={20} />
+              </button>
+            </div>
 
-            {/* Authenticated: Nav links */}
-            {user && (
-              <nav className="hidden md:flex items-center gap-1 mr-2">
-                {user.role === 'admin' && (
-                  <Link
-                    href="/admin/mentors"
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                      isActiveRoute('/admin/mentors')
-                        ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
-                        : `${dm.textMuted} ${dm.hoverBg}`
-                    }`}
-                  >
-                    {t.mentorManagement}
-                  </Link>
-                )}
-                <Link
-                  href="/admin/profile"
-                  className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
-                    isActiveRoute('/admin/profile')
-                      ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
-                      : `${dm.textMuted} ${dm.hoverBg}`
-                  }`}
-                >
-                  {t.dashboard}
-                </Link>
-                {user.role === 'admin' && (
-                  <Link
-                    href="/admin/emails"
-                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 ${
-                      isActiveRoute('/admin/emails')
-                        ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
-                        : `${dm.textMuted} ${dm.hoverBg}`
-                    }`}
-                  >
-                    <Mail size={14} />
-                    {lang === 'ko' ? '공지사항' : 'Announcements'}
-                  </Link>
-                )}
-              </nav>
-            )}
-
-            {/* Admin: Search */}
-            {canSearch && (
-              <>
-                {!searchExpanded ? (
+            {/* Right side controls */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Guest: Nav links - only on homepage when scroll handlers provided */}
+              {variant === 'guest' && (onScrollToAbout || onScrollToMentors) && (
+                <nav className="hidden md:flex items-center gap-1 mr-2">
                   <button
-                    onClick={() => setSearchExpanded(true)}
-                    className={`p-2 ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} ${dm.activeBg} rounded-lg transition-colors`}
-                    aria-label="Search"
+                    onClick={onScrollToAbout}
+                    className={`px-3 py-1.5 text-sm font-medium ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} rounded-lg transition-colors whitespace-nowrap cursor-pointer`}
                   >
-                    <Search size={18} />
+                    {t.navAbout}
                   </button>
-                ) : (
-                  <div className="flex items-center gap-1.5 flex-1 max-w-xs">
-                    <div className="relative flex-1">
-                      <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
-                      <input
-                        type="text"
-                        autoFocus
-                        value={searchValue}
-                        onChange={(e) => onSearchChange?.(e.target.value)}
-                        placeholder={t.searchPlaceholder}
-                        className={`w-full pl-9 pr-3 py-1.5 text-sm ${dm.bgCard} ${dm.text} border ${dm.border} rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40`}
-                      />
-                    </div>
-                    <button
-                      onClick={() => { setSearchExpanded(false); onSearchChange?.(''); }}
-                      className={`p-2 ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} ${dm.activeBg} rounded-lg transition-colors`}
-                      aria-label="Close search"
+                  <button
+                    onClick={onScrollToMentors}
+                    className={`px-3 py-1.5 text-sm font-medium ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} rounded-lg transition-colors whitespace-nowrap cursor-pointer`}
+                  >
+                    {t.navMentors}
+                  </button>
+                </nav>
+              )}
+
+              {/* Authenticated: Nav links */}
+              {user && (
+                <nav className="hidden md:flex items-center gap-1 mr-2">
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin/mentors"
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                        isActiveRoute('/admin/mentors')
+                          ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
+                          : `${dm.textMuted} ${dm.hoverBg}`
+                      }`}
                     >
-                      <X size={18} />
-                    </button>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Language selector */}
-            <select
-              value={lang}
-              onChange={(e) => onLangChange(e.target.value as Language)}
-              className={`text-sm font-medium ${dm.textMuted} ${dm.bgCard} border ${dm.border} rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-12 sm:w-auto`}
-              aria-label="Select language"
-            >
-              <option value="ko">🇰🇷 KO</option>
-              <option value="en">🇺🇸 EN</option>
-            </select>
-
-            {/* Dark mode toggle */}
-            <button
-              onClick={onToggleDarkMode}
-              className={`hidden sm:block p-2 rounded-lg transition-all cursor-pointer ${
-                darkMode ? 'bg-gray-700 text-amber-400' : 'bg-gray-100 text-gray-600'
-              }`}
-              aria-label="Toggle dark mode"
-            >
-              {darkMode ? <Sun size={16} /> : <Moon size={16} />}
-            </button>
-
-            {/* Guest: Mentor Link */}
-            {variant === 'guest' && (!hideLoginLink || !hideSignupLink) && (
-              <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
-                <Link
-                  href="/login"
-                  className="px-3 py-1.5 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors whitespace-nowrap shadow-sm hover:shadow"
-                >
-                  {t.mentor}
-                </Link>
-              </div>
-            )}
-
-            {/* Authenticated: Profile dropdown */}
-            {isAuthenticated && (
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className={`flex items-center gap-1.5 p-1.5 sm:p-2 ${dm.hoverBg} rounded-lg transition-colors cursor-pointer`}
-                  aria-label="Profile menu"
-                >
-                  {user.avatarUrl ? (
-                    <div className="relative w-6 h-6 flex-shrink-0">
-                      <Image
-                        src={user.avatarUrl}
-                        alt={user.displayName || user.email}
-                        fill
-                        className="rounded-full object-cover"
-                        unoptimized={user.avatarUrl.includes('googleusercontent.com') || user.avatarUrl.includes('supabase.co')}
-                      />
-                    </div>
-                  ) : (
-                    <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center`}>
-                      <User size={14} className={dm.textMuted} />
-                    </div>
+                      {t.mentorManagement}
+                    </Link>
                   )}
-                  <ChevronDown size={14} className={`hidden sm:block ${dm.textMuted}`} />
-                </button>
+                  <Link
+                    href="/admin/profile"
+                    className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap ${
+                      isActiveRoute('/admin/profile')
+                        ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
+                        : `${dm.textMuted} ${dm.hoverBg}`
+                    }`}
+                  >
+                    {t.dashboard}
+                  </Link>
+                  {user.role === 'admin' && (
+                    <Link
+                      href="/admin/emails"
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors whitespace-nowrap flex items-center gap-1 ${
+                        isActiveRoute('/admin/emails')
+                          ? `${dm.text} ${darkMode ? 'bg-gray-700' : 'bg-gray-200'}`
+                          : `${dm.textMuted} ${dm.hoverBg}`
+                      }`}
+                    >
+                      <Mail size={14} />
+                      {lang === 'ko' ? '공지사항' : 'Announcements'}
+                    </Link>
+                  )}
+                </nav>
+              )}
 
-                {/* Dropdown Menu */}
-                {profileDropdownOpen && (
-                  <div className={`absolute right-0 mt-2 w-56 ${dm.bgCard} border ${dm.border} rounded-xl shadow-lg z-50 py-1 overflow-hidden`}>
-                    {/* User info */}
-                    <div className={`px-4 py-3 border-b ${dm.border}`}>
-                      <p className={`text-sm font-medium ${dm.text} truncate`}>
-                        {user.displayName || user.email}
-                      </p>
-                      <p className={`text-xs ${dm.textMuted} truncate`}>
-                        {user.email}
-                      </p>
-                      {/* Only show role badge if user is authenticated and has a role (not 'user' role) */}
-                      {user.role && user.role !== 'user' && (
-                        <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
-                          user.role === 'admin'
-                            ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
-                            : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
-                        }`}>
-                          {user.role === 'admin' ? 'Admin' : 'Mentor'}
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Logout */}
-                    <div className="py-1">
+              {/* Admin: Search */}
+              {canSearch && (
+                <>
+                  {!searchExpanded ? (
+                    <button
+                      onClick={() => setSearchExpanded(true)}
+                      className={`p-2 ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} ${dm.activeBg} rounded-lg transition-colors`}
+                      aria-label="Search"
+                    >
+                      <Search size={18} />
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-1.5 flex-1 max-w-xs">
+                      <div className="relative flex-1">
+                        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                        <input
+                          type="text"
+                          autoFocus
+                          value={searchValue}
+                          onChange={(e) => onSearchChange?.(e.target.value)}
+                          placeholder={t.searchPlaceholder}
+                          className={`w-full pl-9 pr-3 py-1.5 text-sm ${dm.bgCard} ${dm.text} border ${dm.border} rounded-lg focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40`}
+                        />
+                      </div>
                       <button
-                        onClick={() => {
-                          setProfileDropdownOpen(false);
-                          onLogout?.();
-                        }}
-                        className={`w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 ${dm.hoverBg} transition-colors flex items-center gap-2 cursor-pointer`}
+                        onClick={() => { setSearchExpanded(false); onSearchChange?.(''); }}
+                        className={`p-2 ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} ${dm.activeBg} rounded-lg transition-colors`}
+                        aria-label="Close search"
                       >
-                        <LogOut size={14} />
-                        {t.logout}
+                        <X size={18} />
                       </button>
                     </div>
-                  </div>
-                )}
-              </div>
-            )}
+                  )}
+                </>
+              )}
+
+              {/* Language selector */}
+              <select
+                value={lang}
+                onChange={(e) => onLangChange(e.target.value as Language)}
+                className={`text-sm font-medium ${dm.textMuted} ${dm.bgCard} border ${dm.border} rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-500 w-12 sm:w-auto`}
+                aria-label="Select language"
+              >
+                <option value="ko">🇰🇷 KO</option>
+                <option value="en">🇺🇸 EN</option>
+              </select>
+
+              {/* Dark mode toggle */}
+              <button
+                onClick={onToggleDarkMode}
+                className={`hidden sm:block p-2 rounded-lg transition-all cursor-pointer ${
+                  darkMode ? 'bg-gray-700 text-amber-400' : 'bg-gray-100 text-gray-600'
+                }`}
+                aria-label="Toggle dark mode"
+              >
+                {darkMode ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+
+              {/* Guest: Mentor Link */}
+              {variant === 'guest' && (!hideLoginLink || !hideSignupLink) && (
+                <div className="flex items-center gap-1 sm:gap-2 ml-1 sm:ml-2">
+                  <Link
+                    href="/login"
+                    className="px-3 py-1.5 text-sm font-medium bg-sky-600 hover:bg-sky-700 text-white rounded-lg transition-colors whitespace-nowrap shadow-sm hover:shadow"
+                  >
+                    {t.mentor}
+                  </Link>
+                </div>
+              )}
+
+              {/* Authenticated: Profile dropdown */}
+              {isAuthenticated && (
+                <div className="relative" ref={dropdownRef}>
+                  <button
+                    onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                    className={`flex items-center gap-1.5 p-1.5 sm:p-2 ${dm.hoverBg} rounded-lg transition-colors cursor-pointer`}
+                    aria-label="Profile menu"
+                  >
+                    {user.avatarUrl ? (
+                      <div className="relative w-6 h-6 flex-shrink-0">
+                        <Image
+                          src={user.avatarUrl}
+                          alt={user.displayName || user.email}
+                          fill
+                          className="rounded-full object-cover"
+                          unoptimized={user.avatarUrl.includes('googleusercontent.com') || user.avatarUrl.includes('supabase.co')}
+                        />
+                      </div>
+                    ) : (
+                      <div className={`w-6 h-6 rounded-full ${darkMode ? 'bg-gray-700' : 'bg-gray-200'} flex items-center justify-center`}>
+                        <User size={14} className={dm.textMuted} />
+                      </div>
+                    )}
+                    <ChevronDown size={14} className={`hidden sm:block ${dm.textMuted}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {profileDropdownOpen && (
+                    <div className={`absolute right-0 mt-2 w-56 ${dm.bgCard} border ${dm.border} rounded-xl shadow-lg z-50 py-1 overflow-hidden`}>
+                      {/* User info */}
+                      <div className={`px-4 py-3 border-b ${dm.border}`}>
+                        <p className={`text-sm font-medium ${dm.text} truncate`}>
+                          {user.displayName || user.email}
+                        </p>
+                        <p className={`text-xs ${dm.textMuted} truncate`}>
+                          {user.email}
+                        </p>
+                        {/* Only show role badge if user is authenticated and has a role (not 'user' role) */}
+                        {user.role && user.role !== 'user' && (
+                          <span className={`inline-block mt-1 px-2 py-0.5 text-xs font-medium rounded-full ${
+                            user.role === 'admin'
+                              ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                              : 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                          }`}>
+                            {user.role === 'admin' ? 'Admin' : 'Mentor'}
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Logout */}
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            setProfileDropdownOpen(false);
+                            onLogout?.();
+                          }}
+                          className={`w-full text-left px-4 py-2 text-sm text-red-500 hover:text-red-600 ${dm.hoverBg} transition-colors flex items-center gap-2 cursor-pointer`}
+                        >
+                          <LogOut size={14} />
+                          {t.logout}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
-    </header>
+      </header>
+
+      {/* QR Code Modal */}
+      {showQrModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => setShowQrModal(false)}>
+          <div className={`${dm.bgCard} p-6 rounded-2xl shadow-xl max-w-sm w-full relative flex flex-col items-center gap-4`} onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setShowQrModal(false)}
+              className={`absolute top-3 right-3 p-1 rounded-full ${dm.textMuted} hover:${dm.text} ${dm.hoverBg} transition-colors`}
+            >
+              <X size={20} />
+            </button>
+            
+            <h3 className={`text-lg font-bold ${dm.text} mt-2`}>donation-mentoring.org</h3>
+            
+            <div className="bg-white p-4 rounded-xl shadow-inner">
+              <Image
+                src="/donation_mentoring_qr_code.png"
+                alt="QR Code for donation-mentoring.org"
+                width={250}
+                height={250}
+                className="block"
+              />
+            </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }

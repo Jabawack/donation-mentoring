@@ -497,8 +497,8 @@ export default function AdminPage() {
       {/* Modal */}
       {isFormOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`${dm.bgCard} border ${dm.border} rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors duration-300`}>
-            <div className={`sticky top-0 ${dm.bgCard} border-b ${dm.border} px-5 py-4 flex justify-between items-center`}>
+          <div className={`${dm.bgCard} border ${dm.border} rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col transition-colors duration-300`}>
+            <div className={`flex-shrink-0 ${dm.bgCard} border-b ${dm.border} px-5 py-4 flex justify-between items-center`}>
               <h2 className={`text-lg font-semibold ${dm.text}`}>
                 {editingMentor ? t.edit : t.applyMentor}
               </h2>
@@ -510,7 +510,7 @@ export default function AdminPage() {
               </button>
             </div>
 
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+            <form id="mentor-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-5 space-y-4">
               {/* Bilingual Fields - each row clearly labeled */}
               {/* Name */}
               <div>
@@ -675,23 +675,25 @@ export default function AdminPage() {
                 <label htmlFor="enabled" className={`text-sm ${dm.textMuted}`}>{t.enabled}</label>
               </div>
 
-              {/* Actions */}
-              <div className={`pt-4 flex justify-end gap-3 border-t ${dm.border}`}>
-                <button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className={`py-2 px-4 border ${dm.border} rounded-lg text-sm font-medium ${dm.textMuted} ${darkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} transition-colors`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="py-2 px-5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 rounded-lg text-sm font-medium text-white transition-colors"
-                >
-                  {t.save}
-                </button>
-              </div>
-            </form>
+              </form>
+
+            {/* Actions */}
+            <div className={`flex-shrink-0 ${dm.bgCard} px-5 py-4 flex justify-end gap-3 border-t ${dm.border}`}>
+              <button
+                type="button"
+                onClick={() => setIsFormOpen(false)}
+                className={`py-2 px-4 border ${dm.border} rounded-lg text-sm font-medium ${dm.textMuted} ${darkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} transition-colors`}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                form="mentor-form"
+                className="py-2 px-5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 rounded-lg text-sm font-medium text-white transition-colors"
+              >
+                {t.save}
+              </button>
+            </div>
           </div>
         </div>
       )}

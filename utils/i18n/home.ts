@@ -47,6 +47,8 @@ export const home = {
     // Mentor card
     viewProfile: "View Profile",
     bookSession: "Book Session",
+    requestSession: "Request Session",
+    contactMentor: "Contact Mentor",
     // About section
     mentoringTitle: "What is Mentorship?",
     mentoringDesc: "Mentorship is the process through which a mentee shares their challenges and inquiries with a mentor to independently discover their optimal solutions. While solo contemplation can be restricted by one's own limited perspective and experience, leveraging the mentor's diverse viewpoints and extensive expertise allows the mentee to achieve broader insights and discover more effective resolutions.",
@@ -119,6 +121,8 @@ export const home = {
     // Mentor card
     viewProfile: "프로필 보기",
     bookSession: "예약하기",
+    requestSession: "세션 요청",
+    contactMentor: "멘토 연락하기",
     // About section
     mentoringTitle: "멘토링이란?",
     mentoringDesc: "멘토링은 멘티가 자신의 고민과 질문을 멘토에게 공유하면서 자신만의 답을 찾아가는 과정입니다. 혼자서 고민하면 자신의 경험과 관점에 한정될 수 있지만, 멘토의 다양한 시각과 풍부한 경험과 함께라면, 더 넓은 시야와 해결책을 찾을 수 있습니다.",

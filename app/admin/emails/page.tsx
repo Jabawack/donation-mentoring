@@ -34,7 +34,16 @@ export default function EmailsPage() {
   };
 
   // UI State
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ko';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+  });
+
+  const handleLangChange = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+  };
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window === 'undefined') return true;
     const saved = localStorage.getItem('darkMode');
@@ -294,7 +303,7 @@ export default function EmailsPage() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
         lang={lang}
-        onLangChange={setLang}
+        onLangChange={handleLangChange}
         user={user ? {
           id: user.id,
           email: user.email,

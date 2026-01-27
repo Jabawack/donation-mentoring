@@ -12,7 +12,16 @@ function ResetPasswordContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get('token');
 
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ko';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+  });
+
+  const handleLangChange = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+  };
   // Dark mode default: true. Read from localStorage if available.
   const [darkMode, setDarkMode] = useState(() => {
     if (typeof window === 'undefined') return true;
@@ -125,7 +134,7 @@ function ResetPasswordContent() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
         lang={lang}
-        onLangChange={setLang}
+        onLangChange={handleLangChange}
         hideLoginLink
       />
 

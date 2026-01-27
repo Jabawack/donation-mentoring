@@ -6,8 +6,9 @@ import { supabase } from '@/utils/supabase';
 import { Mentor } from '@/types/mentor';
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
-import { Trash2, Plus, X, Pencil, Search } from 'lucide-react';
+import { Trash2, Plus, X, Pencil, Search, Info } from 'lucide-react';
 import TopNav from '@/app/components/TopNav';
+import Modal from '@/app/components/Modal';
 import { useAuth } from '@/hooks/useAuth';
 
 // Input class generator (DRY)
@@ -20,7 +21,16 @@ export default function AdminPage() {
 
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ko';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+  });
+
+  const handleLangChange = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+  };
   const [editingMentor, setEditingMentor] = useState<Partial<Mentor> | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -323,7 +333,7 @@ export default function AdminPage() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
         lang={lang}
-        onLangChange={setLang}
+        onLangChange={handleLangChange}
         user={user ? {
           id: user.id,
           email: user.email,
@@ -494,23 +504,32 @@ export default function AdminPage() {
         </div>
       </main>
 
-      {/* Modal */}
-      {isFormOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className={`${dm.bgCard} border ${dm.border} rounded-xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto transition-colors duration-300`}>
-            <div className={`sticky top-0 ${dm.bgCard} border-b ${dm.border} px-5 py-4 flex justify-between items-center`}>
-              <h2 className={`text-lg font-semibold ${dm.text}`}>
-                {editingMentor ? t.edit : t.applyMentor}
-              </h2>
-              <button
-                onClick={() => setIsFormOpen(false)}
-                className={`p-2 ${dm.textSubtle} hover:${dm.text} ${darkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} rounded-lg transition-colors active:scale-95`}
-              >
-                <X size={20} />
-              </button>
-            </div>
-
-            <form onSubmit={handleSubmit} className="p-5 space-y-4">
+      {/* Mentor Form Modal */}
+      <Modal
+        isOpen={isFormOpen}
+        onClose={() => setIsFormOpen(false)}
+        title={editingMentor ? t.edit : t.applyMentor}
+        darkMode={darkMode}
+        footer={
+          <>
+            <button
+              type="button"
+              onClick={() => setIsFormOpen(false)}
+              className={`py-2 px-4 border ${dm.border} rounded-lg text-sm font-medium ${dm.textMuted} ${darkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} transition-colors`}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              form="mentor-form"
+              className="py-2 px-5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 rounded-lg text-sm font-medium text-white transition-colors"
+            >
+              {t.save}
+            </button>
+          </>
+        }
+      >
+        <form id="mentor-form" onSubmit={handleSubmit} className="p-5 space-y-4">
               {/* Bilingual Fields - each row clearly labeled */}
               {/* Name */}
               <div>
@@ -594,8 +613,27 @@ export default function AdminPage() {
                   <input type="text" className={getInputClass(darkMode)} value={formData.linkedin_url} onChange={e => setFormData({...formData, linkedin_url: e.target.value})} />
                 </div>
                 <div>
-                  <label className={getLabelClass(darkMode)}>{t.calendarUrl}</label>
-                  <input type="text" className={getInputClass(darkMode)} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
+                  <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
+                    <span>{t.calendarUrl}</span>
+                    <span className="relative group">
+                      <Info size={14} className={`${dm.textSubtle} cursor-help`} />
+                      <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
+                        {t.calendarUrlTooltip}
+                      </span>
+                    </span>
+                  </label>
+                  <div className="relative">
+                    <input type="text" className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
+                    {formData.calendly_url && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, calendly_url: ''})}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg ${darkMode ? 'text-gray-500 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} transition-colors`}
+                      >
+                        <X size={14} strokeWidth={2.5} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -675,30 +713,19 @@ export default function AdminPage() {
                 <label htmlFor="enabled" className={`text-sm ${dm.textMuted}`}>{t.enabled}</label>
               </div>
 
-              {/* Actions */}
-              <div className={`pt-4 flex justify-end gap-3 border-t ${dm.border}`}>
-                <button
-                  type="button"
-                  onClick={() => setIsFormOpen(false)}
-                  className={`py-2 px-4 border ${dm.border} rounded-lg text-sm font-medium ${dm.textMuted} ${darkMode ? 'hover:bg-gray-700 active:bg-gray-600' : 'hover:bg-gray-100 active:bg-gray-200'} transition-colors`}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="py-2 px-5 bg-sky-600 hover:bg-sky-700 active:bg-sky-800 rounded-lg text-sm font-medium text-white transition-colors"
-                >
-                  {t.save}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+        </form>
+      </Modal>
 
       {/* Delete Confirmation Modal */}
       {deleteConfirm && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div
+          className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) {
+              setDeleteConfirm(null);
+            }
+          }}
+        >
           <div className={`${dm.bgCard} border ${dm.border} rounded-xl shadow-2xl max-w-sm w-full p-6 transition-colors duration-300`}>
             <div className="text-center">
               <div className={`mx-auto w-12 h-12 rounded-full ${darkMode ? 'bg-red-900/30' : 'bg-red-100'} flex items-center justify-center mb-4`}>

@@ -21,7 +21,16 @@ export default function AdminPage() {
 
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ko';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+  });
+
+  const handleLangChange = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+  };
   const [editingMentor, setEditingMentor] = useState<Partial<Mentor> | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -324,7 +333,7 @@ export default function AdminPage() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
         lang={lang}
-        onLangChange={setLang}
+        onLangChange={handleLangChange}
         user={user ? {
           id: user.id,
           email: user.email,
@@ -613,7 +622,18 @@ export default function AdminPage() {
                       </span>
                     </span>
                   </label>
-                  <input type="text" className={getInputClass(darkMode)} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
+                  <div className="relative">
+                    <input type="text" className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
+                    {formData.calendly_url && (
+                      <button
+                        type="button"
+                        onClick={() => setFormData({...formData, calendly_url: ''})}
+                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg ${darkMode ? 'text-gray-500 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} transition-colors`}
+                      >
+                        <X size={14} strokeWidth={2.5} />
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
 

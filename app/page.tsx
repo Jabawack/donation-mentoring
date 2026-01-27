@@ -32,7 +32,16 @@ export default function Home() {
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [lang, setLang] = useState<Language>('ko');
+  const [lang, setLang] = useState<Language>(() => {
+    if (typeof window === 'undefined') return 'ko';
+    const saved = localStorage.getItem('language');
+    return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+  });
+
+  const handleLangChange = (newLang: Language) => {
+    setLang(newLang);
+    localStorage.setItem('language', newLang);
+  };
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
@@ -121,7 +130,7 @@ export default function Home() {
         darkMode={darkMode}
         onToggleDarkMode={toggleDarkMode}
         lang={lang}
-        onLangChange={setLang}
+        onLangChange={handleLangChange}
         onScrollToAbout={() => scrollToElement('hero')}
         onScrollToMentors={scrollToMentors}
       />

@@ -1,11 +1,11 @@
 'use client';
 
 import { Mentor } from '@/types/mentor';
-import { MapPin, Building2, Clock, DollarSign, Linkedin } from 'lucide-react';
+import { MapPin, Building2, Clock, DollarSign, Linkedin, ChevronLeft, ChevronRight } from 'lucide-react';
 import Image from 'next/image';
 import { Language, translations } from '@/utils/i18n';
 import { ensureProtocol } from '@/utils/helpers';
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 
 interface ThemeConfig {
   primaryBg: string;
@@ -34,7 +34,7 @@ interface MentorCardProps {
   darkMode?: DarkModeConfig;
 }
 
-const MAX_VISIBLE_TAGS = 3;
+// All tags shown via horizontal scroll
 
 // Default theme
 const defaultTheme: ThemeConfig = {
@@ -60,6 +60,38 @@ const defaultDarkMode: DarkModeConfig = {
 export default function MentorCard({ mentor, lang, onClick, theme = defaultTheme, darkMode = defaultDarkMode }: MentorCardProps) {
   const t = translations[lang];
   const [imageError, setImageError] = useState(false);
+  const tagsRef = useRef<HTMLDivElement>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+
+  const checkScroll = useCallback(() => {
+    const el = tagsRef.current;
+    if (el) {
+      setCanScrollLeft(el.scrollLeft > 0);
+      setCanScrollRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 1);
+    }
+  }, []);
+
+  useEffect(() => {
+    checkScroll();
+    const el = tagsRef.current;
+    if (el) {
+      el.addEventListener('scroll', checkScroll);
+      window.addEventListener('resize', checkScroll);
+      return () => {
+        el.removeEventListener('scroll', checkScroll);
+        window.removeEventListener('resize', checkScroll);
+      };
+    }
+  }, [checkScroll, mentor.tags]);
+
+  const scrollTags = (direction: 'left' | 'right') => {
+    const el = tagsRef.current;
+    if (el) {
+      const scrollAmount = 100;
+      el.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
 
   const name = lang === 'en' ? mentor.name_en : mentor.name_ko;
   const position = lang === 'en' ? mentor.position_en : mentor.position_ko;
@@ -74,8 +106,7 @@ export default function MentorCard({ mentor, lang, onClick, theme = defaultTheme
   const displayCompany = company || mentor.company_en || mentor.company_ko || '';
   const displayDescription = description || mentor.description_en || mentor.description_ko || '';
 
-  const visibleTags = mentor.tags?.slice(0, MAX_VISIBLE_TAGS) || [];
-  const hiddenTagCount = (mentor.tags?.length || 0) - MAX_VISIBLE_TAGS;
+  const tags = mentor.tags || [];
 
   const dm = darkMode;
 
@@ -186,20 +217,41 @@ export default function MentorCard({ mentor, lang, onClick, theme = defaultTheme
           </p>
         )}
 
-        {/* Tags - single row */}
-        {(visibleTags.length > 0 || hiddenTagCount > 0) && (
-          <div className="flex items-center gap-1.5 pt-2">
-            {visibleTags.map((tag) => (
-              <span
-                key={tag}
-                className={`px-2 py-0.5 ${theme.primaryLight} ${theme.primaryText} text-xs font-small rounded-full overflow-hidden whitespace-nowrap text-clip`}>
-                {tag}
-              </span>
-            ))}
-            {hiddenTagCount > 0 && (
-              <span className={`px-2 py-0.5 ${dm.bgCard} ${dm.textMuted} text-xs font-medium rounded-full border ${dm.border} flex-shrink-0`}>
-                +{hiddenTagCount}
-              </span>
+        {/* Tags - scrollable row with arrows */}
+        {tags.length > 0 && (
+          <div className="relative flex items-center pt-2">
+            {/* Left scroll button */}
+            {canScrollLeft && (
+              <button
+                onClick={(e) => { e.stopPropagation(); scrollTags('left'); }}
+                className={`absolute left-0 z-10 px-0.5 py-1 bg-sky-600/80 text-white hover:bg-sky-600 rounded transition-all`}
+                aria-label="Scroll left"
+              >
+                <ChevronLeft size={14} />
+              </button>
+            )}
+            {/* Tags container */}
+            <div
+              ref={tagsRef}
+              className={`flex items-center gap-1.5 overflow-x-auto scrollbar-hide ${canScrollLeft ? 'pl-4' : ''} ${canScrollRight ? 'pr-4' : ''}`}
+            >
+              {tags.map((tag) => (
+                <span
+                  key={tag}
+                  className={`px-2 py-0.5 ${theme.primaryLight} ${theme.primaryText} text-xs font-medium rounded-full flex-shrink-0 whitespace-nowrap`}>
+                  {tag}
+                </span>
+              ))}
+            </div>
+            {/* Right scroll button */}
+            {canScrollRight && (
+              <button
+                onClick={(e) => { e.stopPropagation(); scrollTags('right'); }}
+                className={`absolute right-0 z-10 px-0.5 py-1 bg-sky-600/80 text-white hover:bg-sky-600 rounded transition-all`}
+                aria-label="Scroll right"
+              >
+                <ChevronRight size={14} />
+              </button>
             )}
           </div>
         )}

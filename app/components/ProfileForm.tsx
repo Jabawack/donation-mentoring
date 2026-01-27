@@ -2,7 +2,7 @@
 
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
-import { Info } from 'lucide-react';
+import { Info, X } from 'lucide-react';
 
 // Input/Label class generators
 const getInputClass = (dark: boolean) => `block w-full rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'} border p-2.5 focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40 transition-all text-sm`;
@@ -248,13 +248,24 @@ export default function ProfileForm({
               </span>
             </span>
           </label>
-          <input
-            type="text"
-            className={getInputClass(darkMode)}
-            value={formData.calendly_url}
-            onChange={e => updateField('calendly_url', e.target.value)}
-            placeholder="https://calendly.com/..."
-          />
+          <div className="relative">
+            <input
+              type="text"
+              className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`}
+              value={formData.calendly_url}
+              onChange={e => updateField('calendly_url', e.target.value)}
+              placeholder="https://calendly.com/..."
+            />
+            {formData.calendly_url && (
+              <button
+                type="button"
+                onClick={() => updateField('calendly_url', '')}
+                className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded ${darkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'} transition-colors`}
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
         </div>
       </div>
 

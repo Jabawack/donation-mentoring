@@ -74,7 +74,7 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
       />
 
       {/* Modal Content */}
-      <div className={`relative ${dm.bgCard} rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col`}>
+      <div className={`relative ${dm.bgCard} rounded-2xl shadow-xl max-w-2xl w-full flex flex-col`}>
         {/* Close Button */}
         <div className="absolute top-4 right-4 z-20">
           <button
@@ -170,7 +170,7 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
           </div>
 
           {/* Description */}
-          <div className={`prose max-w-none ${dm.textMuted} mb-8 whitespace-pre-line leading-relaxed`}>
+          <div className={`prose max-w-none ${dm.textMuted} mb-8 whitespace-pre-line leading-relaxed max-h-48 overflow-y-auto`}>
             {display.description}
           </div>
 

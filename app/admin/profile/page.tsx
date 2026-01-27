@@ -60,7 +60,16 @@ export default function DashboardPage() {
     const router = useRouter();
     const { user, isLoading, isAuthenticated, logout, needsMentorLink, linkMentorProfile } = useAuth();
 
-    const [lang, setLang] = useState<Language>('ko');
+    const [lang, setLang] = useState<Language>(() => {
+        if (typeof window === 'undefined') return 'ko';
+        const saved = localStorage.getItem('language');
+        return (saved === 'en' || saved === 'ko') ? saved : 'ko';
+    });
+
+    const handleLangChange = (newLang: Language) => {
+        setLang(newLang);
+        localStorage.setItem('language', newLang);
+    };
     const [selectedCard, setSelectedCard] = useState<BentoCardId>('profile');
 
     // Dark mode: read from localStorage or default to true
@@ -428,7 +437,7 @@ export default function DashboardPage() {
                 darkMode={darkMode}
                 onToggleDarkMode={toggleDarkMode}
                 lang={lang}
-                onLangChange={setLang}
+                onLangChange={handleLangChange}
                 user={user ? {
                     id: user.id,
                     email: user.email,

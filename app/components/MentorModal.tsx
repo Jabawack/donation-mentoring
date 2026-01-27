@@ -76,29 +76,41 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
       {/* Modal Content */}
       <div className={`relative ${dm.bgCard} rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto flex flex-col`}>
         {/* Close Button */}
-        <div className="absolute top-4 right-4 z-10">
+        <div className="absolute top-4 right-4 z-20">
           <button
             onClick={onClose}
-            className={`p-2 ${dm.bgCard}/80 rounded-full hover:opacity-80 transition-colors`}
+            className="p-2 bg-gray-800/80 hover:bg-gray-700 active:bg-gray-600 text-gray-400 hover:text-gray-200 rounded-lg transition-colors active:scale-95"
             aria-label="Close"
           >
-            <X size={24} className={dm.textMuted} />
+            <X size={20} />
           </button>
         </div>
 
         {/* Hero Image */}
-        <div className={`relative h-64 w-full ${dm.bgCard} shrink-0`}>
+        <div className={`relative h-64 w-full overflow-hidden shrink-0`}>
           {mentor.picture_url && !imageError ? (
-            <Image
-              src={mentor.picture_url}
-              alt={display.name}
-              fill
-              className="object-cover"
-              unoptimized={mentor.picture_url.includes('supabase.co')}
-              onError={() => setImageError(true)}
-            />
+            <>
+              {/* Blurred background layer - same image scaled and blurred */}
+              <Image
+                src={mentor.picture_url}
+                alt=""
+                fill
+                className="object-cover scale-110 blur-xl opacity-80"
+                unoptimized={mentor.picture_url.includes('supabase.co')}
+                aria-hidden="true"
+              />
+              {/* Main image - contained to show full image */}
+              <Image
+                src={mentor.picture_url}
+                alt={display.name}
+                fill
+                className="object-contain relative z-10"
+                unoptimized={mentor.picture_url.includes('supabase.co')}
+                onError={() => setImageError(true)}
+              />
+            </>
           ) : (
-            <div className={`flex items-center justify-center h-full ${dm.textMuted} text-6xl font-bold`}>
+            <div className={`flex items-center justify-center h-full bg-gray-200 ${dm.textMuted} text-6xl font-bold`}>
               {display.name.charAt(0).toUpperCase()}
             </div>
           )}
@@ -108,35 +120,35 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
         <div className="p-6 sm:p-8">
           {/* Header Info */}
           <div className="mb-6">
-            <h2 className={`text-3xl font-extrabold ${dm.text} mb-2`}>{display.name}</h2>
-            <div className={`flex flex-col gap-2 ${dm.textMuted}`}>
-              <div className="flex items-center text-lg">
-                <Briefcase className={`mr-2 ${theme.accentText} w-5 h-5`} />
-                <span className="font-medium">{display.position}</span>
+            <h2 className={`text-3xl font-extrabold ${dm.text} mb-4`}>{display.name}</h2>
+            {/* 2x2 Grid for info */}
+            <div className={`grid grid-cols-2 gap-x-6 gap-y-2 ${dm.textMuted}`}>
+              <div className="flex items-center">
+                <Briefcase className={`mr-2 ${theme.accentText} w-5 h-5 flex-shrink-0`} />
+                <span className="font-medium truncate">{display.position}</span>
               </div>
               {display.company && (
-                <div className="flex items-center text-lg">
-                  <Building2 className={`mr-2 ${theme.accentText} w-5 h-5`} />
-                  <span>{display.company}</span>
+                <div className="flex items-center">
+                  <Building2 className={`mr-2 ${theme.accentText} w-5 h-5 flex-shrink-0`} />
+                  <span className="truncate">{display.company}</span>
                 </div>
               )}
-              <div className={`flex items-center ${dm.textMuted} opacity-80`}>
-                <MapPin className="mr-2 opacity-60 w-5 h-5" />
-                <span>{display.location}</span>
+              <div className="flex items-center opacity-80">
+                <MapPin className={`mr-2 ${theme.accentText} w-5 h-5 flex-shrink-0`} />
+                <span className="truncate">{display.location}</span>
               </div>
-
               {/* Session info */}
               {(mentor.session_time_minutes || mentor.session_price_usd) && (
-                <div className={`flex items-center gap-4 mt-1 text-lg font-medium ${theme.accentText}`}>
+                <div className={`flex items-center gap-3 ${theme.accentText} font-medium`}>
                   {mentor.session_time_minutes && (
                     <div className="flex items-center">
-                      <Clock size={20} className="mr-2" />
+                      <Clock size={18} className="mr-1" />
                       <span>{mentor.session_time_minutes}min</span>
                     </div>
                   )}
                   {mentor.session_price_usd && (
                     <div className="flex items-center">
-                      <DollarSign size={20} className="mr-1" />
+                      <DollarSign size={18} className="mr-0.5" />
                       <span>{mentor.session_price_usd} {t.unicefDonation}</span>
                     </div>
                   )}
@@ -164,7 +176,8 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
 
           {/* Action Buttons */}
           <div className={`flex flex-col sm:flex-row gap-4 pt-4 border-t ${dm.border}`}>
-            {mentor.calendly_url && (
+            {/* Book Session (calendly) or Request Session (email fallback) */}
+            {mentor.calendly_url ? (
               <a
                 href={ensureProtocol(mentor.calendly_url)}
                 target="_blank"
@@ -174,22 +187,32 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
                 <Calendar size={20} />
                 <span>{t.bookSession}</span>
               </a>
-            )}
+            ) : mentor.email ? (
+              <a
+                href={`mailto:${mentor.email}?subject=${encodeURIComponent(lang === 'ko' ? `[멘토링 요청] ${display.name} 멘토님께` : `[Session Request] To ${display.name}`)}`}
+                className={`flex items-center justify-center gap-2 flex-1 px-6 py-3 ${theme.accentBg} ${theme.accentHover} text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md`}
+              >
+                <Calendar size={20} />
+                <span>{t.requestSession}</span>
+              </a>
+            ) : null}
+            {/* Contact Mentor (email) */}
             {mentor.email && (
               <a
                 href={`mailto:${mentor.email}`}
-                className={`flex items-center justify-center gap-2 flex-1 px-6 py-3 ${dm.bgCard} border-2 ${dm.border} ${dm.textMuted} hover:opacity-80 font-semibold rounded-xl transition-all shadow-sm`}
+                className={`flex items-center justify-center gap-2 flex-1 px-6 py-3 ${dm.bgCard} border-2 ${dm.border} ${dm.textMuted} hover:opacity-80 font-semibold rounded-xl transition-all`}
               >
                 <Mail size={20} />
-                <span>Email</span>
+                <span>{t.contactMentor}</span>
               </a>
             )}
+            {/* LinkedIn */}
             {mentor.linkedin_url && (
               <a
                 href={ensureProtocol(mentor.linkedin_url)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 flex-1 px-6 py-3 bg-[#0A66C2] hover:bg-[#004182] text-white font-semibold rounded-xl transition-all shadow-sm hover:shadow-md"
+                className={`flex items-center justify-center gap-2 flex-1 px-6 py-3 ${dm.bgCard} border-2 ${dm.border} ${dm.textMuted} hover:opacity-80 font-semibold rounded-xl transition-all`}
               >
                 <Linkedin size={20} />
                 <span>LinkedIn</span>

@@ -2,6 +2,7 @@
 
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
+import { Info } from 'lucide-react';
 
 // Input/Label class generators
 const getInputClass = (dark: boolean) => `block w-full rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'} border p-2.5 focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40 transition-all text-sm`;
@@ -54,6 +55,7 @@ export default function ProfileForm({
   const t = translations[lang];
   const dm = {
     textMuted: darkMode ? 'text-gray-400' : 'text-gray-600',
+    textSubtle: darkMode ? 'text-gray-500' : 'text-gray-500',
   };
 
   const updateField = (field: keyof ProfileFormData, value: string | string[]) => {
@@ -237,7 +239,15 @@ export default function ProfileForm({
           />
         </div>
         <div>
-          <label className={getLabelClass(darkMode)}>{t.calendarUrl}</label>
+          <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
+            <span>{t.calendarUrl}</span>
+            <span className="relative group">
+              <Info size={14} className={`${dm.textSubtle} cursor-help`} />
+              <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
+                {t.calendarUrlTooltip}
+              </span>
+            </span>
+          </label>
           <input
             type="text"
             className={getInputClass(darkMode)}

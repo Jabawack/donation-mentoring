@@ -26,8 +26,6 @@ class MockRequest {
 describe('POST /api/send-email', () => {
     let mockSend: jest.Mock;
     let mockSupabaseFrom: jest.Mock;
-    let mockSupabaseSelect: jest.Mock;
-    let mockSupabaseEq: jest.Mock;
 
     beforeEach(() => {
         // Reset mocks
@@ -41,17 +39,6 @@ describe('POST /api/send-email', () => {
             emails: {
                 send: mockSend
             }
-        }));
-
-        // Mock Supabase with chained eq() calls
-        mockSupabaseSelect = jest.fn().mockResolvedValue({ data: [{ email: 'admin@test.com' }], error: null });
-        mockSupabaseEq = jest.fn().mockReturnThis();
-        // Override the last eq to return the select result
-        mockSupabaseEq.mockImplementation(() => ({
-            eq: jest.fn().mockReturnValue({
-                then: (resolve: (result: { data: { email: string }[], error: null }) => void) =>
-                    resolve({ data: [{ email: 'admin@test.com' }], error: null })
-            })
         }));
 
         mockSupabaseFrom = jest.fn().mockReturnValue({

@@ -6,7 +6,7 @@ import { supabase } from '@/utils/supabase';
 import { Mentor } from '@/types/mentor';
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
-import { Trash2, Plus, X, Pencil, Search, Info } from 'lucide-react';
+import { Trash2, Plus, X, Pencil, Search, Info, Link, Check } from 'lucide-react';
 import TopNav from '@/app/components/TopNav';
 import Modal from '@/app/components/Modal';
 import { useAuth } from '@/hooks/useAuth';
@@ -43,11 +43,21 @@ export default function AdminPage() {
     return saved !== null ? saved === 'true' : true;
   });
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; name: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const toggleDarkMode = () => {
     const newValue = !darkMode;
     setDarkMode(newValue);
     localStorage.setItem('darkMode', String(newValue));
+  };
+
+  const handleCopyLink = () => {
+    const identifier = formData.slug || editingMentor?.id;
+    if (!identifier) return;
+    const url = `${window.location.origin}/?m=${identifier}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   // Redirect if not authenticated or not admin
@@ -72,6 +82,7 @@ export default function AdminPage() {
     linkedin_url: string;
     calendly_url: string;
     email: string;
+    slug: string;
     languages: string[];
     tags: string;
     is_active: boolean;
@@ -92,6 +103,7 @@ export default function AdminPage() {
     linkedin_url: '',
     calendly_url: '',
     email: '',
+    slug: '',
     languages: [],
     tags: '',
     is_active: true,
@@ -198,6 +210,7 @@ export default function AdminPage() {
       linkedin_url: mentor.linkedin_url || '',
       calendly_url: mentor.calendly_url || '',
       email: mentor.email || '',
+      slug: mentor.slug || '',
       languages: mentor.languages || [],
       tags: mentor.tags ? mentor.tags.join(', ') : '',
       is_active: mentor.is_active,
@@ -279,6 +292,7 @@ export default function AdminPage() {
       linkedin_url: formData.linkedin_url,
       calendly_url: formData.calendly_url,
       email: formData.email,
+      slug: formData.slug,
       languages: formData.languages,
       tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),
       is_active: formData.is_active,
@@ -305,7 +319,7 @@ export default function AdminPage() {
       name_en: '', name_ko: '', description_en: '', description_ko: '',
       location_en: '', location_ko: '', position_en: '', position_ko: '',
       company_en: '', company_ko: '', picture_url: '', linkedin_url: '',
-      calendly_url: '', email: '', languages: [], tags: '',
+      calendly_url: '', email: '', slug: '', languages: [], tags: '',
       is_active: true, session_time_minutes: '', session_price_usd: '',
     });
     setIsFormOpen(true);
@@ -606,34 +620,45 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              {/* Other Fields */}
+              {/* URLs and Slug */}
               <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={getLabelClass(darkMode)}>Profile Slug</label>
+                  <input
+                    type="text"
+                    className={getInputClass(darkMode)}
+                    value={formData.slug}
+                    onChange={e => setFormData({...formData, slug: e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')})}
+                    placeholder="john-doe"
+                  />
+                </div>
                 <div>
                   <label className={getLabelClass(darkMode)}>LinkedIn URL</label>
                   <input type="text" className={getInputClass(darkMode)} value={formData.linkedin_url} onChange={e => setFormData({...formData, linkedin_url: e.target.value})} />
                 </div>
-                <div>
-                  <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
-                    <span>{t.calendarUrl}</span>
-                    <span className="relative group">
-                      <Info size={14} className={`${dm.textSubtle} cursor-help`} />
-                      <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
-                        {t.calendarUrlTooltip}
-                      </span>
+              </div>
+
+              <div>
+                <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
+                  <span>{t.calendarUrl}</span>
+                  <span className="relative group">
+                    <Info size={14} className={`${dm.textSubtle} cursor-help`} />
+                    <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
+                      {t.calendarUrlTooltip}
                     </span>
-                  </label>
-                  <div className="relative">
-                    <input type="text" className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
-                    {formData.calendly_url && (
-                      <button
-                        type="button"
-                        onClick={() => setFormData({...formData, calendly_url: ''})}
-                        className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg ${darkMode ? 'text-gray-500 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} transition-colors`}
-                      >
-                        <X size={14} strokeWidth={2.5} />
-                      </button>
-                    )}
-                  </div>
+                  </span>
+                </label>
+                <div className="relative">
+                  <input type="text" className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`} value={formData.calendly_url} onChange={e => setFormData({...formData, calendly_url: e.target.value})} />
+                  {formData.calendly_url && (
+                    <button
+                      type="button"
+                      onClick={() => setFormData({...formData, calendly_url: ''})}
+                      className={`absolute right-2 top-1/2 -translate-y-1/2 p-1 rounded-lg ${darkMode ? 'text-gray-500 hover:text-white hover:bg-gray-600' : 'text-gray-400 hover:text-gray-700 hover:bg-gray-100'} transition-colors`}
+                    >
+                      <X size={14} strokeWidth={2.5} />
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -690,8 +715,21 @@ export default function AdminPage() {
                 <label className={getLabelClass(darkMode)}>{t.photo}</label>
                 <div className="flex items-center gap-3">
                   {formData.picture_url && (
-                    <div className={`relative h-14 w-14 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg overflow-hidden flex-shrink-0`}>
+                    <div className={`relative h-14 w-14 ${darkMode ? 'bg-gray-700' : 'bg-gray-100'} rounded-lg overflow-hidden flex-shrink-0 group`}>
                       <Image src={formData.picture_url} alt="Preview" fill className="object-cover" unoptimized={formData.picture_url.includes('supabase.co')} />
+                      <button
+                        type="button"
+                        onClick={handleCopyLink}
+                        disabled={!formData.slug && !editingMentor?.id}
+                        className={`absolute bottom-0 right-0 p-1 rounded-tl-lg rounded-br-lg shadow-sm border ${
+                          darkMode 
+                            ? 'bg-gray-800/90 border-gray-700 text-sky-400 hover:text-sky-300' 
+                            : 'bg-white/90 border-gray-200 text-sky-600 hover:text-sky-700'
+                        } transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                        title={t.copySharableUrl}
+                      >
+                        {copied ? <Check size={10} /> : <Link size={10} />}
+                      </button>
                     </div>
                   )}
                   <label className={`cursor-pointer ${darkMode ? 'bg-gray-700 border-gray-600 text-gray-400' : 'bg-gray-50 border-gray-300 text-gray-600'} border border-dashed rounded-lg py-2.5 px-4 text-sm font-medium hover:border-sky-500 hover:text-sky-400 active:border-sky-600 active:bg-sky-900/20 transition-colors`}>

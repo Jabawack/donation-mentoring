@@ -12,6 +12,7 @@ import { supabase } from '@/utils/supabase';
 
 // Initial empty profile form
 const EMPTY_PROFILE: ProfileFormData = {
+    mentorId: '',
     name_en: '',
     name_ko: '',
     description_en: '',
@@ -25,6 +26,7 @@ const EMPTY_PROFILE: ProfileFormData = {
     linkedin_url: '',
     calendly_url: '',
     email: '',
+    slug: '',
     languages: [],
     session_time_minutes: null,
     session_price_usd: null,
@@ -35,6 +37,7 @@ const EMPTY_PROFILE: ProfileFormData = {
 // Mentor data to ProfileFormData converter
 function mentorToFormData(mentor: Record<string, unknown>): ProfileFormData {
     return {
+        mentorId: (mentor.id as string) || '',
         name_en: (mentor.name_en as string) || '',
         name_ko: (mentor.name_ko as string) || '',
         description_en: (mentor.description_en as string) || '',
@@ -48,6 +51,7 @@ function mentorToFormData(mentor: Record<string, unknown>): ProfileFormData {
         linkedin_url: (mentor.linkedin_url as string) || '',
         calendly_url: (mentor.calendly_url as string) || '',
         email: (mentor.email as string) || '',
+        slug: (mentor.slug as string) || '',
         languages: (mentor.languages as string[]) || [],
         session_time_minutes: mentor.session_time_minutes as number | null,
         session_price_usd: mentor.session_price_usd as number | null,
@@ -309,6 +313,7 @@ export default function DashboardPage() {
                 linkedin_url: profileForm.linkedin_url,
                 calendly_url: profileForm.calendly_url,
                 email: profileForm.email,
+                slug: profileForm.slug,
                 languages: profileForm.languages,
                 session_time_minutes: profileForm.session_time_minutes,
                 session_price_usd: profileForm.session_price_usd,
@@ -329,7 +334,7 @@ export default function DashboardPage() {
                 'name_en', 'name_ko', 'description_en', 'description_ko',
                 'position_en', 'position_ko', 'company_en', 'company_ko',
                 'location_en', 'location_ko', 'linkedin_url', 'calendly_url',
-                'email', 'languages', 'session_time_minutes', 'session_price_usd', 'tags'
+                'email', 'slug', 'languages', 'session_time_minutes', 'session_price_usd', 'tags'
             ];
 
             fields.forEach(field => {

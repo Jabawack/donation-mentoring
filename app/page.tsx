@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState, useRef, Suspense } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { Mentor } from '@/types/mentor';
 import MentorCard from '@/app/components/MentorCard';
@@ -29,8 +29,9 @@ const BASE_THEME = {
   bullet: 'text-sky-600',
 };
 
-export default function Home() {
+function HomeContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -44,15 +45,18 @@ export default function Home() {
     setLang(newLang);
     localStorage.setItem('language', newLang);
   };
-  const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+
+  // Derive selected mentor from URL params if mentors are loaded
+  const mentorIdParam = searchParams.get('m') || searchParams.get('mentor');
+  const selectedMentor = mentorIdParam 
+    ? mentors.find((m) => m.slug === mentorIdParam || m.id === mentorIdParam) || null 
+    : null;
 
   const handleOpenMentor = (mentor: Mentor) => {
-    setSelectedMentor(mentor);
-    router.push(`/?mentor=${mentor.id}`, { scroll: false });
+    router.push(`/?m=${mentor.slug || mentor.id}`, { scroll: false });
   };
 
   const handleCloseMentor = () => {
-    setSelectedMentor(null);
     router.push('/', { scroll: false });
   };
 
@@ -126,17 +130,6 @@ export default function Home() {
     };
     loadMentors();
   }, []);
-
-  // Open modal when ?mentor=ID is in the URL (deep link / permalink)
-  useEffect(() => {
-    if (mentors.length === 0) return;
-    const params = new URLSearchParams(window.location.search);
-    const mentorId = params.get('mentor');
-    if (mentorId) {
-      const mentor = mentors.find((m) => m.id === mentorId);
-      if (mentor) setSelectedMentor(mentor);
-    }
-  }, [mentors]);
 
   const t = translations[lang];
 
@@ -583,5 +576,13 @@ function EmptyState({ message, showClearButton, clearButtonText, onClear }: Empt
         </button>
       )}
     </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={null}>
+      <HomeContent />
+    </Suspense>
   );
 }

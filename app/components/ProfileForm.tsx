@@ -2,13 +2,15 @@
 
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
-import { Info, X } from 'lucide-react';
+import { Info, X, Link, Check } from 'lucide-react';
+import { useState } from 'react';
 
 // Input/Label class generators
 const getInputClass = (dark: boolean) => `block w-full rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'} border p-2.5 focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40 transition-all text-sm`;
 const getLabelClass = (dark: boolean) => `block text-sm font-medium ${dark ? 'text-gray-300' : 'text-gray-700'} mb-1.5`;
 
 export interface ProfileFormData {
+  mentorId?: string;
   name_en: string;
   name_ko: string;
   description_en: string;
@@ -22,6 +24,7 @@ export interface ProfileFormData {
   linkedin_url: string;
   calendly_url: string;
   email: string;
+  slug: string;
   languages: string[];
   session_time_minutes: number | null;
   session_price_usd: number | null;
@@ -56,6 +59,18 @@ export default function ProfileForm({
   const dm = {
     textMuted: darkMode ? 'text-gray-400' : 'text-gray-600',
     textSubtle: darkMode ? 'text-gray-500' : 'text-gray-500',
+  };
+
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyLink = () => {
+    const identifier = formData.slug || formData.mentorId;
+    if (!identifier) return;
+    
+    const url = `${window.location.origin}/?m=${identifier}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const updateField = (field: keyof ProfileFormData, value: string | string[]) => {
@@ -226,8 +241,18 @@ export default function ProfileForm({
         </div>
       </div>
 
-      {/* URLs */}
+      {/* URLs and Slug */}
       <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className={getLabelClass(darkMode)}>Profile Slug</label>
+          <input
+            type="text"
+            className={getInputClass(darkMode)}
+            value={formData.slug}
+            onChange={e => updateField('slug', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, ''))}
+            placeholder="john-doe"
+          />
+        </div>
         <div>
           <label className={getLabelClass(darkMode)}>LinkedIn URL</label>
           <input
@@ -238,34 +263,35 @@ export default function ProfileForm({
             placeholder="https://linkedin.com/in/..."
           />
         </div>
-        <div>
-          <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
-            <span>{t.calendarUrl}</span>
-            <span className="relative group">
-              <Info size={14} className={`${dm.textSubtle} cursor-help`} />
-              <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
-                {t.calendarUrlTooltip}
-              </span>
+      </div>
+
+      <div>
+        <label className={`${getLabelClass(darkMode)} flex items-center justify-between`}>
+          <span>{t.calendarUrl}</span>
+          <span className="relative group">
+            <Info size={14} className={`${dm.textSubtle} cursor-help`} />
+            <span className={`absolute right-0 bottom-full mb-2 px-3 py-2 text-xs ${darkMode ? 'bg-gray-700 text-gray-200' : 'bg-gray-800 text-white'} rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10 shadow-lg`}>
+              {t.calendarUrlTooltip}
             </span>
-          </label>
-          <div className="relative">
-            <input
-              type="text"
-              className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`}
-              value={formData.calendly_url}
-              onChange={e => updateField('calendly_url', e.target.value)}
-              placeholder="https://calendly.com/..."
-            />
-            {formData.calendly_url && (
-              <button
-                type="button"
-                onClick={() => updateField('calendly_url', '')}
-                className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded ${darkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'} transition-colors`}
-              >
-                <X size={16} />
-              </button>
-            )}
-          </div>
+          </span>
+        </label>
+        <div className="relative">
+          <input
+            type="text"
+            className={`${getInputClass(darkMode)} ${formData.calendly_url ? 'pr-9' : ''}`}
+            value={formData.calendly_url}
+            onChange={e => updateField('calendly_url', e.target.value)}
+            placeholder="https://calendly.com/..."
+          />
+          {formData.calendly_url && (
+            <button
+              type="button"
+              onClick={() => updateField('calendly_url', '')}
+              className={`absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded ${darkMode ? 'text-gray-400 hover:text-gray-200 hover:bg-gray-700' : 'text-gray-400 hover:text-gray-600 hover:bg-gray-200'} transition-colors`}
+            >
+              <X size={16} />
+            </button>
+          )}
         </div>
       </div>
 
@@ -348,7 +374,7 @@ export default function ProfileForm({
         <label className={getLabelClass(darkMode)}>{t.photo}</label>
         <div className="flex items-center gap-4 pt-2">
           {formData.picture_url && (
-            <div className="relative w-16 h-16 flex-shrink-0">
+            <div className="relative w-16 h-16 flex-shrink-0 group">
               <Image
                 src={formData.picture_url}
                 alt="Profile"
@@ -356,6 +382,19 @@ export default function ProfileForm({
                 className="rounded-lg object-cover"
                 unoptimized={formData.picture_url.includes('supabase.co')}
               />
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                disabled={!formData.slug && !formData.mentorId}
+                className={`absolute bottom-0 right-0 p-1 rounded-tl-lg rounded-br-lg shadow-sm border ${
+                  darkMode 
+                    ? 'bg-gray-800/90 border-gray-700 text-sky-400 hover:text-sky-300' 
+                    : 'bg-white/90 border-gray-200 text-sky-600 hover:text-sky-700'
+                } transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed`}
+                title={t.copySharableUrl}
+              >
+                {copied ? <Check size={12} /> : <Link size={12} />}
+              </button>
             </div>
           )}
           <label className={`px-4 py-2 rounded-lg text-sm font-medium cursor-pointer transition-colors ${

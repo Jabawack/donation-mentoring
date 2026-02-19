@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { X, Briefcase, Building2, MapPin, Calendar, Mail, Linkedin, Clock, DollarSign } from 'lucide-react';
+import { X, Briefcase, Building2, MapPin, Calendar, Mail, Linkedin, Clock, DollarSign, Link, Check } from 'lucide-react';
 import { Mentor } from '@/types/mentor';
 import { Language, translations } from '@/utils/i18n';
 import { ensureProtocol, getMentorDisplay } from '@/utils/helpers';
@@ -57,9 +57,18 @@ const defaultDarkMode: DarkModeConfig = {
 
 export default function MentorModal({ mentor, lang, onClose, theme = defaultTheme, darkMode = defaultDarkMode }: MentorModalProps) {
   const [imageError, setImageError] = useState(false);
+  const [copied, setCopied] = useState(false);
   const display = getMentorDisplay(mentor, lang);
   const t = translations[lang];
   const dm = darkMode;
+
+  const handleCopyLink = () => {
+    const identifier = mentor.slug || mentor.id;
+    const url = `${window.location.origin}/?m=${identifier}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   // Prevent background scrolling when modal is open
   useEffect(() => {
@@ -124,6 +133,19 @@ export default function MentorModal({ mentor, lang, onClose, theme = defaultThem
                 {display.name.charAt(0).toUpperCase()}
               </div>
             )}
+
+            {/* Copy Link Button */}
+            <button
+              onClick={handleCopyLink}
+              className="absolute bottom-4 right-4 z-20 p-2.5 bg-gray-800/80 hover:bg-sky-600 text-gray-200 rounded-xl transition-all shadow-lg active:scale-95 group"
+              title={t.copySharableUrl}
+            >
+              {copied ? (
+                <Check size={18} className="text-green-400" />
+              ) : (
+                <Link size={18} className="group-hover:rotate-12 transition-transform" />
+              )}
+            </button>
           </div>
 
           {/* Content */}

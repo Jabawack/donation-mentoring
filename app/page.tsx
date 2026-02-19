@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 import { supabase } from '@/utils/supabase';
 import { Mentor } from '@/types/mentor';
 import MentorCard from '@/app/components/MentorCard';
@@ -29,6 +30,7 @@ const BASE_THEME = {
 };
 
 export default function Home() {
+  const router = useRouter();
   const [mentors, setMentors] = useState<Mentor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -43,6 +45,17 @@ export default function Home() {
     localStorage.setItem('language', newLang);
   };
   const [selectedMentor, setSelectedMentor] = useState<Mentor | null>(null);
+
+  const handleOpenMentor = (mentor: Mentor) => {
+    setSelectedMentor(mentor);
+    router.push(`/?mentor=${mentor.id}`, { scroll: false });
+  };
+
+  const handleCloseMentor = () => {
+    setSelectedMentor(null);
+    router.push('/', { scroll: false });
+  };
+
   const [mobileFilterOpen, setMobileFilterOpen] = useState(false);
   const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
   const [showDetailedSteps, setShowDetailedSteps] = useState(false);
@@ -113,6 +126,17 @@ export default function Home() {
     };
     loadMentors();
   }, []);
+
+  // Open modal when ?mentor=ID is in the URL (deep link / permalink)
+  useEffect(() => {
+    if (mentors.length === 0) return;
+    const params = new URLSearchParams(window.location.search);
+    const mentorId = params.get('mentor');
+    if (mentorId) {
+      const mentor = mentors.find((m) => m.id === mentorId);
+      if (mentor) setSelectedMentor(mentor);
+    }
+  }, [mentors]);
 
   const t = translations[lang];
 
@@ -322,7 +346,7 @@ export default function Home() {
               <span className="text-2xl">✨</span> {t.todaysMentor}
             </h2>
             <div 
-              onClick={() => setSelectedMentor(todaysMentor)}
+              onClick={() => handleOpenMentor(todaysMentor)}
               className={`${dm.bgCard} rounded-2xl p-6 border ${dm.border} shadow-lg hover:shadow-xl transition-all cursor-pointer group flex flex-col md:flex-row gap-8 items-center md:items-start`}
             >
               {/* Big Picture */}
@@ -479,7 +503,7 @@ export default function Home() {
                       key={mentor.id}
                       mentor={mentor}
                       lang={lang}
-                      onClick={setSelectedMentor}
+                      onClick={handleOpenMentor}
                       theme={theme}
                       darkMode={dm}
                     />
@@ -517,7 +541,7 @@ export default function Home() {
         <MentorModal
           mentor={selectedMentor}
           lang={lang}
-          onClose={() => setSelectedMentor(null)}
+          onClose={handleCloseMentor}
           theme={theme}
           darkMode={dm}
         />

@@ -112,21 +112,27 @@ function HomeContent() {
 
   useEffect(() => {
     const loadMentors = async () => {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('mentors')
-        .select('*')
-        .eq('is_active', true);
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('mentors')
+          .select('*')
+          .eq('is_active', true);
 
-      if (error) {
-        console.error('Error fetching mentors:', error);
+        if (error) {
+          console.error('Error fetching mentors:', error);
+          setMentors([]);
+        } else {
+          const activeMentors = data || [];
+          setMentors(shuffleArray(activeMentors));
+          setTodaysMentor(getDailyMentor(activeMentors));
+        }
+      } catch (err) {
+        console.error('Unexpected error loading mentors:', err);
         setMentors([]);
-      } else {
-        const activeMentors = data || [];
-        setMentors(shuffleArray(activeMentors));
-        setTodaysMentor(getDailyMentor(activeMentors));
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     loadMentors();
   }, []);

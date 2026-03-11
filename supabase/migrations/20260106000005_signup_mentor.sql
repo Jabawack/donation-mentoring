@@ -16,22 +16,34 @@ BEGIN
 
     -- Insert new mentor
     -- We use crypt(p_password, gen_salt('bf')) to hash the password
+    -- Insert new mentor with default empty values for required fields to support partial signup
     INSERT INTO mentors (
         email,
         password,
         role,
         is_active,
+        name_en,
+        name_ko,
+        location_en,
+        location_ko,
+        description_en,
+        description_ko,
         created_at,
         updated_at
     ) VALUES (
         p_email,
         crypt(p_password, gen_salt('bf')),
         'mentor',
-        false, -- Default to inactive until profile is filled? Or true? Let's say false/draft.
+        false, -- Default to inactive until profile is filled
+        '',    -- Default empty strings for NOT NULL columns
+        '',
+        '',
+        '',
+        '',
+        '',
         now(),
         now()
     ) RETURNING id INTO v_id;
-
     -- Fetch the created mentor to return
     SELECT * INTO v_mentor FROM mentors WHERE id = v_id;
 

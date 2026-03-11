@@ -28,6 +28,7 @@ BEGIN
         location_ko,
         description_en,
         description_ko,
+        slug,
         created_at,
         updated_at
     ) VALUES (
@@ -41,6 +42,7 @@ BEGIN
         '',
         '',
         '',
+        split_part(p_email, '@', 1) || '-' || substr(md5(random()::text), 1, 6),
         now(),
         now()
     ) RETURNING id INTO v_id;

@@ -115,11 +115,12 @@ function AuthContent() {
       if (mode === 'login') {
         setError(t.invalidCredentials);
       } else {
-        const errorMessage = err instanceof Error ? err.message : '';
+        const errorMessage = err instanceof Error ? err.message : String(err);
         if (errorMessage.includes('already registered')) {
           setError(t.emailAlreadyExists);
         } else {
-          setError(t.signupFailed);
+          console.error('Detailed signup failure:', errorMessage, err);
+          setError(`${t.signupFailed} (${errorMessage})`);
         }
       }
     } finally {

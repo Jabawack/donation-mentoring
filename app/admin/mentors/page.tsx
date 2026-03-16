@@ -291,7 +291,7 @@ export default function AdminPage() {
       picture_url: formData.picture_url,
       linkedin_url: formData.linkedin_url,
       calendly_url: formData.calendly_url,
-      email: formData.email,
+      email: formData.email.trim().toLowerCase(),
       slug: formData.slug,
       languages: formData.languages,
       tags: formData.tags.split(',').map(tag => tag.trim()).filter(Boolean),

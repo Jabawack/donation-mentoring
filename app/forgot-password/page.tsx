@@ -56,13 +56,15 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     setError(null);
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     try {
       const response = await fetch('/api/auth/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, lang }),
+        body: JSON.stringify({ email: normalizedEmail, lang }),
       });
 
       const data = await response.json();

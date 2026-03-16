@@ -312,7 +312,7 @@ export default function DashboardPage() {
                 location_ko: profileForm.location_ko,
                 linkedin_url: profileForm.linkedin_url,
                 calendly_url: profileForm.calendly_url,
-                email: profileForm.email,
+                email: profileForm.email.trim().toLowerCase(),
                 slug: profileForm.slug,
                 languages: profileForm.languages,
                 session_time_minutes: profileForm.session_time_minutes,
@@ -381,10 +381,11 @@ export default function DashboardPage() {
         }
 
         try {
+            const normalizedEmail = user.email.trim().toLowerCase();
             const response = await fetch('/api/auth/forgot-password', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: user.email, lang }),
+                body: JSON.stringify({ email: normalizedEmail, lang }),
             });
 
             if (response.ok) {

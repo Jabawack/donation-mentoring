@@ -10,6 +10,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Email is required' }, { status: 400 });
     }
 
+    const normalizedEmail = email.trim().toLowerCase();
+
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
     const supabase = createClient(supabaseUrl, supabaseKey);
@@ -18,12 +20,12 @@ export async function POST(request: Request) {
     const { data: mentor } = await supabase
       .from('mentors')
       .select('id, name_en, name_ko')
-      .eq('email', email)
+      .eq('email', normalizedEmail)
       .single();
 
     if (!mentor) {
       // Return success to prevent enumeration, but log for debug
-      console.log(`Password reset requested for non-existent email: ${email}`);
+      console.log(`Password reset requested for non-existent email: ${normalizedEmail}`);
       return NextResponse.json({ message: 'If an account exists, a reset link has been sent.' });
     }
 
@@ -67,15 +69,15 @@ export async function POST(request: Request) {
 
       await resend.emails.send({
         from: process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev',
-        to: email,
+        to: normalizedEmail,
         subject: subject,
         html: htmlContent,
       });
-      console.log(`Password reset email sent to ${email}`);
+      console.log(`Password reset email sent to ${normalizedEmail}`);
     } else {
         console.warn('RESEND_API_KEY is missing. Email not sent.');
         const origin = request.headers.get('origin') || 'http://localhost:3000';
-        console.log(`[DEV] Reset Link for ${email}: ${origin}/reset-password?token=${resetToken}`);
+        console.log(`[DEV] Reset Link for ${normalizedEmail}: ${origin}/reset-password?token=${resetToken}`);
     }
 
     return NextResponse.json({ message: 'Reset link sent' });

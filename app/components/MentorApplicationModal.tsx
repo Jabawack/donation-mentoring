@@ -133,7 +133,7 @@ export default function MentorApplicationModal({ isOpen, onClose, lang, darkMode
       picture_url: formData.picture_url,
       linkedin_url: formData.linkedin_url,
       calendly_url: formData.calendly_url,
-      email: formData.email,
+      email: formData.email.trim().toLowerCase(),
       languages: languagesArray,
       tags: tagsArray,
       is_active: false, // Explicitly set to false

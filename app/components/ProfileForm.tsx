@@ -3,7 +3,7 @@
 import { translations, Language } from '@/utils/i18n';
 import Image from 'next/image';
 import { Info, X, Link, Check } from 'lucide-react';
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 
 // Input/Label class generators
 const getInputClass = (dark: boolean) => `block w-full rounded-lg ${dark ? 'bg-gray-800 border-gray-700 text-gray-100 placeholder-gray-500' : 'bg-white border-gray-300 text-gray-900 placeholder-gray-400'} border p-2.5 focus:outline-none focus:ring-1 focus:ring-sky-500/40 focus:border-sky-500/40 transition-all text-sm`;
@@ -100,26 +100,27 @@ export default function ProfileForm({
   };
 
   // Use local state for tags input to avoid controlled input issues
-  const [tagsInputValue, setTagsInputValue] = useState(formData.tags.join(', '));
-  const isTagsInputFocused = useRef(false);
+  const tagsString = formData.tags.join(', ');
+  const [tagsInputValue, setTagsInputValue] = useState(tagsString);
+  const [prevTagsString, setPrevTagsString] = useState(tagsString);
+  const [isTagsFocused, setIsTagsFocused] = useState(false);
 
   // Sync local state when formData.tags changes from outside (but not while user is typing)
-  useEffect(() => {
-    if (!isTagsInputFocused.current) {
-      setTagsInputValue(formData.tags.join(', '));
-    }
-  }, [formData.tags]);
+  if (tagsString !== prevTagsString && !isTagsFocused) {
+    setPrevTagsString(tagsString);
+    setTagsInputValue(tagsString);
+  }
 
   const handleTagsChange = (value: string) => {
     setTagsInputValue(value);
   };
 
   const handleTagsFocus = () => {
-    isTagsInputFocused.current = true;
+    setIsTagsFocused(true);
   };
 
   const handleTagsBlur = () => {
-    isTagsInputFocused.current = false;
+    setIsTagsFocused(false);
     const tags = tagsInputValue.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
     onChange({ ...formData, tags });
     setTagsInputValue(tags.join(', ')); // Normalize display after blur
